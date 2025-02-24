@@ -1,18 +1,13 @@
--- Drop existing policies
+-- First, drop the existing insert policy
 DROP POLICY IF EXISTS "Users can insert their own profile" ON profiles;
-DROP POLICY IF EXISTS "Allow profile creation during signup" ON profiles;
 
--- Create a new policy that allows inserting profiles during signup
-CREATE POLICY "Allow profile creation during signup"
+-- Create a simpler, more permissive policy for profile creation
+CREATE POLICY "Enable insert for profile creation"
 ON profiles FOR INSERT
 WITH CHECK (true);
 
--- Create a policy that allows users to update their own profile
+-- Update the update policy to be more specific
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile"
 ON profiles FOR UPDATE
 USING (auth.uid() = id);
-
--- Create a policy that allows users to read their own profile
-CREATE POLICY "Users can view own profile"
-ON profiles FOR SELECT
-USING (auth.uid() = id OR auth.role() = 'anon');

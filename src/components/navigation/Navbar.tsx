@@ -78,7 +78,7 @@ const Navbar = ({
 
   return (
     <nav className="w-full h-auto md:h-[72px] px-4 md:px-6 border-b bg-white">
-      <div className="max-w-7xl mx-auto flex flex-row items-center justify-between py-4 md:py-0 gap-4 md:gap-0">
+      <div className="max-w-7xl mx-auto flex flex-row items-center justify-between h-full gap-4 md:gap-0">
         {/* Logo and Brand */}
         <div className="flex items-center gap-2">
           <Dumbbell className="h-8 w-8 text-primary" />

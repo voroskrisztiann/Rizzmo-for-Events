@@ -5,7 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-export function LoginForm() {
+interface LoginFormProps {
+  onSuccess?: () => void;
+}
+
+export function LoginForm({ onSuccess = () => {} }: LoginFormProps) {
   const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +22,7 @@ export function LoginForm() {
       setLoading(true);
       setError("");
       await signIn(email, password);
+      onSuccess();
     } catch (err) {
       setError(err.message);
     } finally {

@@ -55,41 +55,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     marketingAccepted: boolean,
     staySignedIn: boolean,
   ) => {
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          role: role,
+    try {
+      const { data: authData, error: signUpError } = await supabase.auth.signUp(
+        {
+          email,
+          password,
+          options: {
+            data: {
+              role: role,
+            },
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+          },
         },
-      },
-    });
-    if (signUpError) throw signUpError;
+      );
+      if (signUpError) throw signUpError;
+      if (!authData.user?.id) throw new Error("No user ID returned");
 
-    // Create profile record
-    const { error: profileError } = await supabase.from("profiles").insert([
-      {
-        id: authData.user?.id,
-        email,
-        first_name: firstName,
-        last_name: lastName,
-        phone_number: phone,
-        year_of_birth: birthYear || null,
-        gender: gender ? parseInt(gender) : null,
-        terms_accepted: termsAccepted,
-        marketing_accepted: marketingAccepted,
-        stay_signed_in: staySignedIn,
-        role,
-      },
-    ]);
-    if (profileError) throw profileError;
+      // Create profile record
+      const { error: profileError } = await supabase.from("profiles").insert([
+        {
+          id: authData.user.id,
+          email,
+          first_name: firstName,
+          last_name: lastName,
+          phone_number: phone,
+          year_of_birth: birthYear || null,
+          gender: gender ? parseInt(gender) : null,
+          terms_accepted: termsAccepted,
+          marketing_accepted: marketingAccepted,
+          stay_signed_in: staySignedIn,
+          role,
+        },
+      ]);
+      if (profileError) throw profileError;
 
-    // Sign in immediately after signup
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (signInError) throw signInError;
+      // Sign in immediately after signup if email confirmation is disabled
+      const { data: session, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+      if (signInError) {
+        // If sign in fails due to email confirmation required, show a friendly message
+        if (signInError.message.includes("Email not confirmed")) {
+          throw new Error(
+            "Please check your email to confirm your account before signing in.",
+          );
+        }
+        throw signInError;
+      }
+
+      return session;
+    } catch (error) {
+      // If the error is about email confirmation, we still want to close the dialog
+      // since the signup was successful
+      if (error.message.includes("Email not confirmed")) {
+        return null; // This will allow the dialog to close
+      }
+      throw error;
+    }
   };
 
   const signOut = async () => {

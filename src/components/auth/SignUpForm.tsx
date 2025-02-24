@@ -15,7 +15,11 @@ import {
 } from "@/components/ui/select";
 import { Eye, EyeOff } from "lucide-react";
 
-export function SignUpForm() {
+interface SignUpFormProps {
+  onSuccess?: () => void;
+}
+
+export function SignUpForm({ onSuccess = () => {} }: SignUpFormProps) {
   const { signUp } = useAuth();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -41,7 +45,7 @@ export function SignUpForm() {
     try {
       setLoading(true);
       setError("");
-      await signUp(
+      const session = await signUp(
         email,
         password,
         role,
@@ -54,6 +58,19 @@ export function SignUpForm() {
         acceptMarketing,
         staySignedIn,
       );
+
+      // Close the dialog even if we're waiting for email confirmation
+      if (!session) {
+        setError(
+          "Please check your email to confirm your account before signing in.",
+        );
+        onSuccess(); // Close the modal even if email confirmation is needed
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        onSuccess(); // Close the modal on successful login
+      }
     } catch (err) {
       setError(err.message);
     } finally {

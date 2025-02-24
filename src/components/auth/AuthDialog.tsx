@@ -37,10 +37,10 @@ export function AuthDialog({
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
           <TabsContent value="login" className="mt-4">
-            <LoginForm />
+            <LoginForm onSuccess={onClose} />
           </TabsContent>
           <TabsContent value="signup" className="mt-4">
-            <SignUpForm />
+            <SignUpForm onSuccess={onClose} />
           </TabsContent>
         </Tabs>
       </DialogContent>
